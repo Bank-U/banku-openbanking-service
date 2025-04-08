@@ -15,4 +15,8 @@ public abstract class Event extends ApplicationEvent {
         this.aggregateId = aggregateId;
         this.occurredOn = LocalDateTime.now();
     }
+
+    public String getEventType() {
+        return this.getClass().getSimpleName();
+    }
 } 
