@@ -7,7 +7,7 @@ spring:
     mongodb:
       uri: ${spring.data.mongodb.uri}
   kafka:
-    bootstrap-servers: localhost:9093
+    bootstrap-servers: localhost:9092
     consumer:
       group-id: banku-openbanking-group
       auto-offset-reset: earliest
@@ -35,3 +35,8 @@ management:
 
 jwt:
   secret: ${jwt.secret}
+
+plaid:
+  client-id: ${plaid.client-id}
+  secret: ${plaid.secret}
+  env: ${plaid.env}
