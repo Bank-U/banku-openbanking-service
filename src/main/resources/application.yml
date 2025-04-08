@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: banku-openbanking-service
+  profiles:
+    active: local
+  data:
+    mongodb:
+      uri: ${spring.data.mongodb.uri}
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: banku-openbanking-group
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+server:
+  port: 8082
+
+logging:
+  level:
+    root: INFO
+    com.banku.openbankingservice: DEBUG
+    org.springframework.data.mongodb: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+jwt:
+  secret: ${jwt.secret}
+
+plaid:
+  client-id: ${plaid.client-id}
+  secret: ${plaid.secret}
+  env: ${plaid.env}
