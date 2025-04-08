@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 public class PlaidService {
     private final OpenBankingAggregateRepository aggregateRepository;
     private final PlaidApi plaidApi;
+    private final KafkaService kafkaService;
 
     public String createLinkToken(String userId) {
         try {
@@ -82,7 +83,7 @@ public class PlaidService {
             // Fetch transactions
             TransactionsGetRequest transactionsRequest = new TransactionsGetRequest();
             transactionsRequest.setAccessToken(aggregate.getAccessToken());
-            transactionsRequest.setStartDate(LocalDate.now().minusDays(30));
+            transactionsRequest.setStartDate(LocalDate.now().minusDays(90));
             transactionsRequest.setEndDate(LocalDate.now());
             Response<TransactionsGetResponse> transactionsResponse = plaidApi.transactionsGet(transactionsRequest).execute();
             if (!transactionsResponse.isSuccessful()) {
@@ -100,6 +101,10 @@ public class PlaidService {
 
             aggregate.setLastUpdated(LocalDateTime.now());
             aggregateRepository.save(aggregate);
+
+            if (aggregate.getTransactions().size() > 0 && aggregate.getAccounts().size() > 0) {
+                kafkaService.sendMessage("banku.openbanking", aggregate.getUserId(), aggregate);
+            }
         } catch (Exception e) {
             log.error("Error refreshing data", e);
             throw new RuntimeException("Failed to refresh data", e);
