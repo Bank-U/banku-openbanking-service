@@ -1,7 +1,7 @@
 package com.banku.openbankingservice.service;
 
-import com.banku.openbankingservice.aggregate.OpenBankingAggregate;
-import com.banku.openbankingservice.repository.OpenBankingAggregateRepository;
+import com.banku.openbankingservice.aggregate.OpenBankingEventAggregate;
+import com.banku.openbankingservice.event.OpenBankingEvent;
 import com.plaid.client.request.PlaidApi;
 import com.plaid.client.model.*;
 import com.google.gson.Gson;
@@ -12,7 +12,6 @@ import retrofit2.Response;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,7 +19,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class PlaidService {
-    private final OpenBankingAggregateRepository aggregateRepository;
+    private final OpenBankingEventService openBankingEventService;
     private final PlaidApi plaidApi;
     private final KafkaService kafkaService;
 
@@ -37,6 +36,10 @@ public class PlaidService {
             if (!response.isSuccessful()) {
                 handlePlaidError(response);
             }
+            
+            // Guardar evento de creación de link
+            openBankingEventService.saveLinkCreatedEvent(userId);
+            
             return response.body().getLinkToken();
         } catch (Exception e) {
             log.error("Error creating link token", e);
@@ -54,13 +57,9 @@ public class PlaidService {
                 handlePlaidError(response);
             }
             String accessToken = response.body().getAccessToken();
-
-            OpenBankingAggregate aggregate = new OpenBankingAggregate();
-            aggregate.setUserId(userId);
-            aggregate.setAccessToken(accessToken);
-            aggregate.setLastUpdated(LocalDateTime.now());
-
-            aggregateRepository.save(aggregate);
+            
+            // Guardar evento de intercambio de token
+            openBankingEventService.saveTokenExchangedEvent(userId, accessToken);
         } catch (Exception e) {
             log.error("Error exchanging public token", e);
             throw new RuntimeException("Failed to exchange public token", e);
@@ -68,7 +67,10 @@ public class PlaidService {
     }
 
     public void forceRefresh(String userId) {
-        OpenBankingAggregate aggregate = aggregateRepository.findByUserId(userId)
+        // Obtener el token de acceso del último agregado
+        OpenBankingEventAggregate aggregate = openBankingEventService.findAggregatesByUserId(userId)
+            .stream()
+            .findFirst()
             .orElseThrow(() -> new RuntimeException("No Plaid connection found for user"));
 
         try {
@@ -79,6 +81,10 @@ public class PlaidService {
             if (!accountsResponse.isSuccessful()) {
                 handlePlaidError(accountsResponse);
             }
+            
+            List<OpenBankingEvent.Account> accounts = accountsResponse.body().getAccounts().stream()
+                .map(this::mapToAccount)
+                .collect(Collectors.toList());
 
             // Fetch transactions
             TransactionsGetRequest transactionsRequest = new TransactionsGetRequest();
@@ -89,21 +95,16 @@ public class PlaidService {
             if (!transactionsResponse.isSuccessful()) {
                 handlePlaidError(transactionsResponse);
             }
-
-            // Update aggregate
-            aggregate.setAccounts(accountsResponse.body().getAccounts().stream()
-                .map(this::mapToAccount)
-                .collect(Collectors.toList()));
-
-            aggregate.setTransactions(transactionsResponse.body().getTransactions().stream()
+            
+            List<OpenBankingEvent.Transaction> transactions = transactionsResponse.body().getTransactions().stream()
                 .map(this::mapToTransaction)
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList());
 
-            aggregate.setLastUpdated(LocalDateTime.now());
-            aggregateRepository.save(aggregate);
-
-            if (aggregate.getTransactions().size() > 0 && aggregate.getAccounts().size() > 0) {
-                kafkaService.sendMessage("banku.openbanking", aggregate.getUserId(), aggregate);
+            // Guardar evento de datos recuperados
+            OpenBankingEvent event = openBankingEventService.saveDataFetchedEvent(userId, accounts, transactions);
+            
+            if (accounts.size() > 0 && transactions.size() > 0) {
+                kafkaService.sendMessage("banku.openbanking", userId, event);
             }
         } catch (Exception e) {
             log.error("Error refreshing data", e);
@@ -130,8 +131,8 @@ public class PlaidService {
         }
     }
 
-    private OpenBankingAggregate.Account mapToAccount(AccountBase plaidAccount) {
-        OpenBankingAggregate.Account account = new OpenBankingAggregate.Account();
+    private OpenBankingEvent.Account mapToAccount(AccountBase plaidAccount) {
+        OpenBankingEvent.Account account = new OpenBankingEvent.Account();
         account.setAccountId(plaidAccount.getAccountId());
         account.setName(plaidAccount.getName());
         account.setType(plaidAccount.getType() != null ? plaidAccount.getType().toString() : null);
@@ -141,8 +142,8 @@ public class PlaidService {
         return account;
     }
 
-    private OpenBankingAggregate.Transaction mapToTransaction(Transaction plaidTransaction) {
-        OpenBankingAggregate.Transaction transaction = new OpenBankingAggregate.Transaction();
+    private OpenBankingEvent.Transaction mapToTransaction(Transaction plaidTransaction) {
+        OpenBankingEvent.Transaction transaction = new OpenBankingEvent.Transaction();
         transaction.setTransactionId(plaidTransaction.getTransactionId());
         transaction.setAccountId(plaidTransaction.getAccountId());
         transaction.setAmount(plaidTransaction.getAmount() != null ? BigDecimal.valueOf(plaidTransaction.getAmount()) : null);
