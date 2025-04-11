@@ -21,20 +21,14 @@ public class JwtService {
     private String secretKey;
 
     private Key getSigningKey() {
-        try {
-            byte[] keyBytes = secretKey.getBytes();
-            return Keys.hmacShaKeyFor(keyBytes);
-        } catch (Exception e) {
-            log.error("Error al generar la clave de firma", e);
-            throw new RuntimeException("Error al generar la clave de firma", e);
-        }
+        return Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
     public String extractUsername(String token) {
         try {
             return extractClaim(token, Claims::getSubject);
         } catch (Exception e) {
-            log.error("Error al extraer el username del token", e);
+            log.error("Error extracting username from token", e);
             return null;
         }
     }
@@ -46,7 +40,6 @@ public class JwtService {
             return null;
         }
         
-        // Intentar obtener el userId de los detalles de autenticación
         if (authentication.getDetails() instanceof Map) {
             Map<String, Object> details = (Map<String, Object>) authentication.getDetails();
             String userId = (String) details.get("userId");
@@ -56,9 +49,7 @@ public class JwtService {
             }
         }
         
-        // Si no se encuentra el userId en los detalles, usar el nombre de usuario como fallback
-        log.info("Using principal name as fallback: {}", authentication.getName());
-        return authentication.getName();
+        return null;
     }
 
     public String extractUserId(String token) {
@@ -69,14 +60,12 @@ public class JwtService {
                     .parseClaimsJws(token)
                     .getBody();
             
-            // Intentar obtener el userId directamente del claim principal
             String userId = claims.get("userId", String.class);
             if (userId != null) {
                 log.info("Found userId in claims: {}", userId);
                 return userId;
             }
             
-            // Si no está directamente en los claims, intentar buscarlo en extraClaims
             Object extraClaimsObj = claims.get("extraClaims");
             if (extraClaimsObj instanceof Map) {
                 Map<String, Object> extraClaims = (Map<String, Object>) extraClaimsObj;
@@ -87,11 +76,10 @@ public class JwtService {
                 }
             }
             
-            // Si no se encuentra, retornar el subject como último recurso
             log.warn("userId not found in token, using subject as fallback");
             return claims.getSubject();
         } catch (Exception e) {
-            log.error("Error al extraer el userId del token", e);
+            log.error("Error extracting userId from token", e);
             return null;
         }
     }
@@ -105,10 +93,10 @@ public class JwtService {
                     .getBody();
             return claimsResolver.apply(claims);
         } catch (ExpiredJwtException e) {
-            log.warn("Token expirado: {}", e.getMessage());
+            log.warn("Token expired: {}", e.getMessage());
             throw e;
         } catch (JwtException | IllegalArgumentException e) {
-            log.error("Error al procesar el token JWT: {}", e.getMessage());
+            log.error("Error processing JWT token: {}", e.getMessage());
             throw e;
         }
     }
@@ -121,7 +109,7 @@ public class JwtService {
                     .parseClaimsJws(token);
             return !isTokenExpired(token);
         } catch (Exception e) {
-            log.error("Error al validar token: {}", e.getMessage());
+            log.error("Error validating token: {}", e.getMessage());
             return false;
         }
     }
@@ -131,8 +119,8 @@ public class JwtService {
             Date expiration = extractClaim(token, Claims::getExpiration);
             return expiration.before(new Date());
         } catch (Exception e) {
-            log.error("Error al verificar expiración del token: {}", e.getMessage());
+            log.error("Error verifying token expiration: {}", e.getMessage());
             return true;
         }
     }
-} 
+}

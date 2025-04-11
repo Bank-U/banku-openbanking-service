@@ -68,6 +68,7 @@ public class PlaidService {
 
     public void forceRefresh(String userId) {
         // Obtener el token de acceso del último agregado
+        log.info("Force refresh for user: {}", userId);
         OpenBankingEventAggregate aggregate = openBankingEventService.findAggregatesByUserId(userId)
             .stream()
             .findFirst()

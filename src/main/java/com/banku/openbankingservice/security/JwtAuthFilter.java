@@ -11,7 +11,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -47,7 +46,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
             if (jwtService.isTokenValid(jwt)) {
-                // Extraer el userId del token y agregarlo a los detalles de autenticación
                 String userId = jwtService.extractUserId(jwt);
                 log.info("JWT Token contains userId: {}", userId);
                 
@@ -57,7 +55,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                         userDetails.getAuthorities()
                 );
                 
-                // Crear un mapa con el userId y establecerlo como detalle de autenticación
                 Map<String, Object> details = new HashMap<>();
                 details.put("userId", userId);
                 authToken.setDetails(details);

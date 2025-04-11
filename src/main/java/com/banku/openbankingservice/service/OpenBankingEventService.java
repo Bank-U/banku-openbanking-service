@@ -90,7 +90,6 @@ public class OpenBankingEventService {
     public OpenBankingEvent saveTokenExchangedEvent(String userId, String accessToken) {
         OpenBankingEvent event = new OpenBankingEvent();
         
-        // Buscar el último evento del usuario para obtener el aggregateId
         List<OpenBankingEvent> userEvents = findByUserId(userId);
         if (!userEvents.isEmpty()) {
             String aggregateId = userEvents.get(0).getAggregateId();
@@ -108,7 +107,6 @@ public class OpenBankingEventService {
                                                 List<OpenBankingEvent.Transaction> transactions) {
         OpenBankingEvent event = new OpenBankingEvent();
         
-        // Buscar el último evento del usuario para obtener el aggregateId
         List<OpenBankingEvent> userEvents = findByUserId(userId);
         if (!userEvents.isEmpty()) {
             String aggregateId = userEvents.get(0).getAggregateId();

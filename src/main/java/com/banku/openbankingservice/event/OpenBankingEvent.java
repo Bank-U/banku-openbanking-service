@@ -21,10 +21,8 @@ public class OpenBankingEvent {
     private long timestamp;
     private long version = 1L;
     
-    // Datos de acceso a Plaid
     private String accessToken;
     
-    // Datos financieros
     private List<Account> accounts = new ArrayList<>();
     private List<Transaction> transactions = new ArrayList<>();
     
