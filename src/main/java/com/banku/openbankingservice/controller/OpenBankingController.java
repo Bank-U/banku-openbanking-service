@@ -14,7 +14,7 @@ public class OpenBankingController {
 
     @PostMapping("/link-token")
     public ResponseEntity<LinkTokenResponse> createLinkToken(@RequestBody LinkTokenRequest request) {
-        String linkToken = plaidService.createLinkToken(request.getUserId());
+        String linkToken = plaidService.createLinkToken(request.getUserId(), request.getLanguage());
         return ResponseEntity.ok(new LinkTokenResponse(linkToken));
     }
 
@@ -33,6 +33,7 @@ public class OpenBankingController {
     @Data
     public static class LinkTokenRequest {
         private String userId;
+        private String language;
     }
 
     @Data
