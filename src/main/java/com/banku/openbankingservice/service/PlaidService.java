@@ -14,6 +14,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
@@ -23,12 +25,12 @@ public class PlaidService {
     private final PlaidApi plaidApi;
     private final KafkaService kafkaService;
 
-    public String createLinkToken(String userId) {
+    public String createLinkToken(String userId, String language) {
         try {
             LinkTokenCreateRequest request = new LinkTokenCreateRequest();
             request.setClientName("Banku");
             request.setCountryCodes(List.of(CountryCode.ES));
-            request.setLanguage("en");
+            request.setLanguage(Optional.ofNullable(language).orElse("en"));
             request.setUser(new LinkTokenCreateRequestUser().clientUserId(userId));
             request.setProducts(List.of(Products.AUTH, Products.TRANSACTIONS));
 
@@ -37,7 +39,7 @@ public class PlaidService {
                 handlePlaidError(response);
             }
             
-            // Guardar evento de creación de link
+            // Save link created event
             openBankingEventService.saveLinkCreatedEvent(userId);
             
             return response.body().getLinkToken();
@@ -58,8 +60,17 @@ public class PlaidService {
             }
             String accessToken = response.body().getAccessToken();
             
-            // Guardar evento de intercambio de token
+            // Save token exchanged event
             openBankingEventService.saveTokenExchangedEvent(userId, accessToken);
+            CompletableFuture.runAsync(() -> {
+                try {
+                    Thread.sleep(5000); // Wait 5 seconds. TODO:Consider webhook instead.
+                    fetchAndProcessData(userId, accessToken);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("Interrupted while waiting", e);
+                }
+            });
         } catch (Exception e) {
             log.error("Error exchanging public token", e);
             throw new RuntimeException("Failed to exchange public token", e);
@@ -67,17 +78,21 @@ public class PlaidService {
     }
 
     public void forceRefresh(String userId) {
-        // Obtener el token de acceso del último agregado
         log.info("Force refresh for user: {}", userId);
-        OpenBankingEventAggregate aggregate = openBankingEventService.findAggregatesByUserId(userId)
+        String accessToken = openBankingEventService.findAggregatesByUserId(userId)
             .stream()
             .findFirst()
+            .map(OpenBankingEventAggregate::getAccessToken)
             .orElseThrow(() -> new RuntimeException("No Plaid connection found for user"));
 
+        fetchAndProcessData(userId, accessToken);
+    }
+
+    private void fetchAndProcessData(String userId, String accessToken) {
         try {
             // Fetch accounts
             AccountsGetRequest accountsRequest = new AccountsGetRequest();
-            accountsRequest.setAccessToken(aggregate.getAccessToken());
+            accountsRequest.setAccessToken(accessToken);
             Response<AccountsGetResponse> accountsResponse = plaidApi.accountsGet(accountsRequest).execute();
             if (!accountsResponse.isSuccessful()) {
                 handlePlaidError(accountsResponse);
@@ -89,7 +104,7 @@ public class PlaidService {
 
             // Fetch transactions
             TransactionsGetRequest transactionsRequest = new TransactionsGetRequest();
-            transactionsRequest.setAccessToken(aggregate.getAccessToken());
+            transactionsRequest.setAccessToken(accessToken);
             transactionsRequest.setStartDate(LocalDate.now().minusDays(90));
             transactionsRequest.setEndDate(LocalDate.now());
             Response<TransactionsGetResponse> transactionsResponse = plaidApi.transactionsGet(transactionsRequest).execute();
@@ -101,7 +116,7 @@ public class PlaidService {
                 .map(this::mapToTransaction)
                 .collect(Collectors.toList());
 
-            // Guardar evento de datos recuperados
+            // Save data fetched event
             OpenBankingEvent event = openBankingEventService.saveDataFetchedEvent(userId, accounts, transactions);
             
             if (accounts.size() > 0 && transactions.size() > 0) {
