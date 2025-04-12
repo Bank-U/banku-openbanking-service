@@ -7,15 +7,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/openbanking")
+@RequestMapping("/api/v1/openbanking")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:4200", allowCredentials = "true")
 public class OpenBankingController {
     private final PlaidService plaidService;
 
     @PostMapping("/link-token")
     public ResponseEntity<LinkTokenResponse> createLinkToken(@RequestBody LinkTokenRequest request) {
-        String linkToken = plaidService.createLinkToken(request.getUserId());
+        String linkToken = plaidService.createLinkToken(request.getUserId(), request.getLanguage());
         return ResponseEntity.ok(new LinkTokenResponse(linkToken));
     }
 
@@ -34,6 +33,7 @@ public class OpenBankingController {
     @Data
     public static class LinkTokenRequest {
         private String userId;
+        private String language;
     }
 
     @Data

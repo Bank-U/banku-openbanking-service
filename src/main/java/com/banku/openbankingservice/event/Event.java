@@ -19,4 +19,4 @@ public abstract class Event extends ApplicationEvent {
     public String getEventType() {
         return this.getClass().getSimpleName();
     }
-} 
+}
