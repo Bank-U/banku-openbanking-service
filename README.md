@@ -116,3 +116,12 @@ The Docker Compose file includes:
 ## License
 
 This project is private and confidential.
+
+## API Documentation
+
+The service provides OpenAPI (Swagger) documentation that can be accessed through:
+
+- Direct access: http://localhost:8082/api/v1/openbanking/swagger-ui/index.html
+- Through Gateway: http://localhost:8080/api/v1/openbanking/swagger-ui/index.html
+
+The API documentation includes detailed information about all endpoints, request/response schemas, and authentication requirements.

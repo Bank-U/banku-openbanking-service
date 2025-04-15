@@ -21,6 +21,8 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/v1/openbanking/swagger-ui/**").permitAll()
+                .requestMatchers("/api/v1/openbanking/v3/api-docs/**").permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session
