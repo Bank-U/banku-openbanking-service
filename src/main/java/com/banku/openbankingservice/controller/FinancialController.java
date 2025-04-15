@@ -2,6 +2,9 @@ package com.banku.openbankingservice.controller;
 
 import com.banku.openbankingservice.event.OpenBankingEvent;
 import com.banku.openbankingservice.service.OpenBankingEventService;
+
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +19,8 @@ import java.util.List;
 @RequestMapping("/api/v1/openbanking/financial")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "Financial", description = "Financial APIs for account and transaction information")
+@SecurityRequirement(name = "bearerAuth")
 public class FinancialController {
     
     private final OpenBankingEventService openBankingEventService;
@@ -47,4 +52,4 @@ public class FinancialController {
             return ResponseEntity.status(500).build();
         }
     }
-} 
+}

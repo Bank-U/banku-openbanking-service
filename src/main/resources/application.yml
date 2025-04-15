@@ -31,3 +31,16 @@ plaid:
   client-id: ${plaid.client-id}
   secret: ${plaid.secret}
   env: ${plaid.env}
+
+springdoc:
+  swagger-ui:
+    path: /api/v1/openbanking/swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    tryItOutEnabled: true
+    filter: true
+  api-docs:
+    path: /api/v1/openbanking/v3/api-docs
+  show-actuator: true
+  packages-to-scan: com.banku.openbankingservice.controller
+  paths-to-match: /api/v1/**
