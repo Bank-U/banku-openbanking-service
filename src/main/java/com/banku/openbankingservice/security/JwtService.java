@@ -61,7 +61,6 @@ public class JwtService {
             
             String userId = claims.get("userId", String.class);
             if (userId != null) {
-                log.info("Found userId in claims: {}", userId);
                 return userId;
             }
             
