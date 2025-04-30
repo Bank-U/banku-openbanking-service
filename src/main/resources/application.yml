@@ -2,13 +2,15 @@ spring:
   application:
     name: banku-openbanking-service
   profiles:
-    active: local
+    active: prod
   data:
     mongodb:
       uri: ${spring.data.mongodb.uri}
   kafka:
+    client:
+      id: ${spring.kafka.client.id}
     consumer:
-      group-id: banku-user-group
+      group-id: ${spring.kafka.consumer.group-id}
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
