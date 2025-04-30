@@ -17,10 +17,6 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
-    properties:
-      security.protocol: ${spring.kafka.properties.security.protocol}
-      sasl.mechanism: ${spring.kafka.properties.sasl.mechanism}
-      sasl.jaas.config: ${spring.kafka.properties.sasl.jaas.config}
       
 jwt:
   secret: ${jwt.secret}
