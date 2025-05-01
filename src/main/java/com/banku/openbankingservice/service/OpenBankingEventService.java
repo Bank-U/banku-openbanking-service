@@ -5,7 +5,6 @@ import com.banku.openbankingservice.aggregate.OpenBankingEventAggregate;
 import com.banku.openbankingservice.event.OpenBankingEvent;
 import com.banku.openbankingservice.repository.OpenBankingEventRepository;
 import com.banku.openbankingservice.security.JwtService;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +16,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-@Slf4j
 public class OpenBankingEventService {
     
     @Autowired
@@ -123,7 +121,6 @@ public class OpenBankingEventService {
     public OpenBankingEventAggregate getCurrentUserAggregate() {
         String userId = JwtService.extractUserId();
         List<OpenBankingEvent> userEvents = findByUserId(userId);
-        log.info("userEvents: {}", userId);
         if (userEvents.isEmpty()) {
             return null;
         }

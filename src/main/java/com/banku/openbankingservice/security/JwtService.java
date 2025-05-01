@@ -44,7 +44,6 @@ public class JwtService {
             Map<String, Object> details = (Map<String, Object>) authentication.getDetails();
             String userId = (String) details.get("userId");
             if (userId != null) {
-                log.info("Found userId in authentication details: {}", userId);
                 return userId;
             }
         }
@@ -62,7 +61,6 @@ public class JwtService {
             
             String userId = claims.get("userId", String.class);
             if (userId != null) {
-                log.info("Found userId in claims: {}", userId);
                 return userId;
             }
             

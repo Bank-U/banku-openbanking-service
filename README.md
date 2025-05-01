@@ -20,6 +20,42 @@ OpenBanking integration service for BankU, implemented with Spring Boot.
 - Docker
 - Docker Compose
 
+## Configuration
+
+### Required Environment Variables
+
+The service requires the following environment variables to be set:
+
+```bash
+# MongoDB Configuration
+spring.data.mongodb.uri=mongodb://banku:secret@localhost:27017/banku-openbanking?authSource=admin
+
+# Kafka Configuration
+spring.kafka.bootstrap-servers=localhost:9092
+
+# JWT Configuration
+jwt.secret=xxxxxxx
+
+# Plaid Configuration
+plaid.client-id=your-plaid-client-id
+plaid.secret=your-plaid-secret
+plaid.env=sandbox
+```
+
+### Local Development Setup
+
+1. Create a `application-local.properties` file in the project root with the required environment variables
+2. Start the required services using Docker Compose:
+   ```bash
+   docker-compose up -d
+   ```
+3. Run the application:
+   ```bash
+   ./mvnw spring-boot:run
+   ```
+
+The service will be available at `http://localhost:8082`
+
 ## Project Structure
 
 ```
@@ -47,29 +83,11 @@ src/
 - `GET /api/v1/openbanking/transactions/{accountId}`: Get account transactions
 - `GET /api/v1/openbanking/balance/{accountId}`: Get account balance
 
-## Configuration
+## API Documentation
 
-### MongoDB
-
-```properties
-spring.data.mongodb.uri=mongodb://banku:secret@localhost:27017/banku-openbanking?authSource=admin
-```
-
-### Kafka
-
-```properties
-spring.kafka.bootstrap-servers=localhost:9092
-spring.kafka.consumer.group-id=banku-openbanking-group
-spring.kafka.consumer.auto-offset-reset=earliest
-```
-
-### OpenBanking
-
-```properties
-openbanking.api.url=https://api.openbanking.com
-openbanking.api.key=your-api-key
-openbanking.api.secret=your-api-secret
-```
+The service provides Swagger UI for API documentation at:
+- Swagger UI: `http://localhost:8082/api/v1/openbanking/swagger-ui.html`
+- OpenAPI JSON: `http://localhost:8082/api/v1/openbanking/v3/api-docs`
 
 ## Development
 
@@ -78,12 +96,12 @@ openbanking.api.secret=your-api-secret
 - Java 17
 - Docker
 - Docker Compose
-- OpenBanking API credentials
+- Plaid API credentials
 
 ### Local Execution
 
 1. Clone the repository
-2. Configure OpenBanking API credentials in `application.properties`
+2. Configure Plaid API credentials in `application-local.properties`
 3. Run `docker-compose up -d` to start MongoDB and Kafka
 4. Run the application with `./mvnw spring-boot:run`
 
@@ -93,25 +111,6 @@ Run tests with:
 ```bash
 ./mvnw test
 ```
-
-## Docker
-
-The service can be run using Docker:
-
-```bash
-docker-compose up -d
-```
-
-The Docker Compose file includes:
-- MongoDB for data storage
-- Kafka for event streaming
-
-## Security
-
-- All API calls are encrypted using TLS
-- Sensitive data is encrypted at rest
-- API keys and secrets are stored securely
-- Regular security audits and updates
 
 ## License
 

@@ -7,15 +7,17 @@ spring:
     mongodb:
       uri: ${spring.data.mongodb.uri}
   kafka:
+    client:
+      id: ${spring.kafka.client.id}
     consumer:
-      group-id: banku-user-group
+      group-id: ${spring.kafka.consumer.group-id}
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
-
+      
 jwt:
   secret: ${jwt.secret}
 
@@ -31,3 +33,16 @@ plaid:
   client-id: ${plaid.client-id}
   secret: ${plaid.secret}
   env: ${plaid.env}
+
+springdoc:
+  swagger-ui:
+    path: /api/v1/openbanking/swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    tryItOutEnabled: true
+    filter: true
+  api-docs:
+    path: /api/v1/openbanking/v3/api-docs
+  show-actuator: true
+  packages-to-scan: com.banku.openbankingservice.controller
+  paths-to-match: /api/v1/**

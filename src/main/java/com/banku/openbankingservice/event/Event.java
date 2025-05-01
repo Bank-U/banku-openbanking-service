@@ -1,17 +1,15 @@
 package com.banku.openbankingservice.event;
 
-import lombok.Getter;
-import org.springframework.context.ApplicationEvent;
-
 import java.time.LocalDateTime;
 
+import lombok.Getter;
+
 @Getter
-public abstract class Event extends ApplicationEvent {
+public abstract class Event  {
     private final String aggregateId;
     private final LocalDateTime occurredOn;
 
-    protected Event(Object source, String aggregateId) {
-        super(source);
+    protected Event(String aggregateId) {
         this.aggregateId = aggregateId;
         this.occurredOn = LocalDateTime.now();
     }
