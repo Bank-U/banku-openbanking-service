@@ -62,15 +62,8 @@ public class PlaidService {
             
             // Save token exchanged event
             openBankingEventService.saveTokenExchangedEvent(userId, accessToken);
-            CompletableFuture.runAsync(() -> {
-                try {
-                    Thread.sleep(5000); // Wait 5 seconds. TODO:Consider webhook instead.
-                    fetchAndProcessData(userId, accessToken);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    throw new RuntimeException("Interrupted while waiting", e);
-                }
-            });
+            Thread.sleep(5000); // Wait 5 seconds. TODO:Consider webhook instead.
+            fetchAndProcessData(userId, accessToken);
         } catch (Exception e) {
             log.error("Error exchanging public token", e);
             throw new RuntimeException("Failed to exchange public token", e);
@@ -120,7 +113,7 @@ public class PlaidService {
             OpenBankingEvent event = openBankingEventService.saveDataFetchedEvent(userId, accounts, transactions);
             
             if (accounts.size() > 0 && transactions.size() > 0) {
-                kafkaService.sendMessage("banku.openbanking", userId, event);
+                kafkaService.publishEvent(event);
             }
         } catch (Exception e) {
             log.error("Error refreshing data", e);

@@ -2,7 +2,7 @@ spring:
   application:
     name: banku-openbanking-service
   profiles:
-    active: prod
+    active: local
   data:
     mongodb:
       uri: ${spring.data.mongodb.uri}
@@ -17,7 +17,7 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
-
+      
 jwt:
   secret: ${jwt.secret}
 
