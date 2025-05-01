@@ -5,14 +5,16 @@ import java.util.Map;
 
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.admin.NewTopic;
-import org.springframework.kafka.core.DefaultKafkaProducerFactory;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.core.ProducerFactory;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.config.SaslConfigs;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.TopicBuilder;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
 
 /**
  * <h3>Kafka configuration for the open banking service.</h3>
@@ -28,6 +30,9 @@ import org.springframework.kafka.config.TopicBuilder;
 @Configuration
 public class KafkaConfig {
 
+    @Value("${spring.kafka.bootstrap-servers}")
+    private String bootstrapServers;
+    
     @Value("${spring.kafka.properties.security.protocol}")
     private String securityProtocol;
     
@@ -48,9 +53,24 @@ public class KafkaConfig {
     @Bean
     public Map<String, Object> producerConfigs() {
         Map<String, Object> props = new HashMap<>();
+        
+        // Basic configuration
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        
+        // SASL configuration
         props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, securityProtocol);
         props.put(SaslConfigs.SASL_MECHANISM, saslMechanism);
         props.put(SaslConfigs.SASL_JAAS_CONFIG, jaasConfig);
+        
+        // Additional recommended configurations for Confluent Cloud
+        props.put(ProducerConfig.RETRIES_CONFIG, 2147483647);
+        props.put("client.dns.lookup", "use_all_dns_ips");
+        props.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 300000);
+        props.put(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, 300000);
+        props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 30000);
+        
         return props;
     }
     
