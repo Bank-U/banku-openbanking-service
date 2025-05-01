@@ -11,10 +11,10 @@ public class OpenBankingFetchedEvent extends Event {
     private final List<OpenBankingAggregate.Account> accounts;
     private final List<OpenBankingAggregate.Transaction> transactions;
 
-    public OpenBankingFetchedEvent(Object source, String aggregateId, String userId, 
+    public OpenBankingFetchedEvent(String aggregateId, String userId, 
                                  List<OpenBankingAggregate.Account> accounts,
                                  List<OpenBankingAggregate.Transaction> transactions) {
-        super(source, aggregateId);
+        super(aggregateId);
         this.userId = userId;
         this.accounts = accounts;
         this.transactions = transactions;

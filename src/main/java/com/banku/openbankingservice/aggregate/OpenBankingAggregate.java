@@ -1,9 +1,7 @@
 package com.banku.openbankingservice.aggregate;
 
-import com.banku.openbankingservice.event.OpenBankingFetchedEvent;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
-import org.springframework.context.ApplicationEventPublisher;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -44,15 +42,5 @@ public class OpenBankingAggregate {
         private String name;
         private String merchantName;
         private String category;
-    }
-
-    public void publishFetchedEvent(ApplicationEventPublisher eventPublisher) {
-        eventPublisher.publishEvent(new OpenBankingFetchedEvent(
-            this,
-            this.id,
-            this.userId,
-            this.accounts,
-            this.transactions
-        ));
     }
 } 
