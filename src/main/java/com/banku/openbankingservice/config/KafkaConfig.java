@@ -63,14 +63,6 @@ public class KafkaConfig {
         props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, securityProtocol);
         props.put(SaslConfigs.SASL_MECHANISM, saslMechanism);
         props.put(SaslConfigs.SASL_JAAS_CONFIG, jaasConfig);
-        
-        // Additional recommended configurations for Confluent Cloud
-        props.put(ProducerConfig.RETRIES_CONFIG, 2147483647);
-        props.put("client.dns.lookup", "use_all_dns_ips");
-        props.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 300000);
-        props.put(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, 300000);
-        props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 30000);
-        
         return props;
     }
     
