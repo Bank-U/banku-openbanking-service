@@ -15,7 +15,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
@@ -28,7 +27,7 @@ public class PlaidService {
     public String createLinkToken(String userId, String language) {
         try {
             LinkTokenCreateRequest request = new LinkTokenCreateRequest();
-            request.setClientName("Banku");
+            request.setClientName("BankU");
             request.setCountryCodes(List.of(CountryCode.ES));
             request.setLanguage(Optional.ofNullable(language).orElse("en"));
             request.setUser(new LinkTokenCreateRequestUser().clientUserId(userId));
@@ -98,7 +97,7 @@ public class PlaidService {
             // Fetch transactions
             TransactionsGetRequest transactionsRequest = new TransactionsGetRequest();
             transactionsRequest.setAccessToken(accessToken);
-            transactionsRequest.setStartDate(LocalDate.now().minusDays(90));
+            transactionsRequest.setStartDate(LocalDate.now().minusDays(365));
             transactionsRequest.setEndDate(LocalDate.now());
             Response<TransactionsGetResponse> transactionsResponse = plaidApi.transactionsGet(transactionsRequest).execute();
             if (!transactionsResponse.isSuccessful()) {
